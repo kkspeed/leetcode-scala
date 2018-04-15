@@ -1,5 +1,5 @@
 Learn Scala by Practicing on LeetCode
----
+===
 
 # Introduction
 ## Why
@@ -44,11 +44,19 @@ The documentation is (planned to be) divided into the following sections:
 6. Functional Reactive Programming: This section presents FRP approach to a small number of
    (currently only one :p) problems.
 
-# Moral
+## Moral
 Most of the examples in this documentation will be selected from LeetCode. I try to use
 free problems as much as possible. For these problems, I may or may not directly present
 them in this documentation. For those problems that currently require subscription, I'll
 provide link to LeetCode without mentioning the problem in detail in this doc.
+
+## The Pitfall of Scala on LeetCode
+There are a few drawbacks to using Scala on LeetCode:
+1. Most structures are directly translated from Java. Thus, a tree is a class with a value,
+   left, right pointers instead of a case class. Most inputs are arrays, strings instead
+   of lists, making pattern matching a bit painful.
+2. Compilation can sometimes fail. This possibly is related to Scala's lengthy compilation time.
+   When this happens, most likely a re-submit could fix it.
 
 # License
 The documentation is licensed under
