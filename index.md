@@ -36,7 +36,7 @@ The documentation is (planned to be) divided into the following sections:
 
 1. [Basic Recursion](basic-recursion.md): 
     This section talks about trivial problems using only very basic function calls
-2. Collections: This section talks about Scala collections (hopefully) in depth
+2. [Collections](collections.md): This section talks about Scala collections (hopefully) in depth
 3. Search: This section explores mostly depth-first search and breadth-first search
 4. Dynamic Programming: This section talks about how to solve dynamic programming problems in
    Scala
