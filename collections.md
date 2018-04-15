@@ -40,10 +40,10 @@ adjacent.
 Observing the example:
 
 ```
-10001   --> 10101
-1001    --> 1001
-100001  --> 101001
-1000001 --> 1010101
+3 zeros   10001   --> 10101     --> 1 additional flower
+2 zeros   1001    --> 1001      --> 0 additional flower
+4 zeros   100001  --> 101001    --> 1 additional flower
+5 zeros   1000001 --> 1010101   --> 2 additional flower
 ```
 
 we see that for consecutive N zeros, we could put maximum <tt>N / 2 - 1</tt> 1s if N is even and <tt>N / 2</tt>
@@ -84,7 +84,88 @@ Then we use map to examine each of such pairs and compute the maximum number of 
 
 At last we sum the numbers up to get the total number of 1s to be inserted.
 
+# Valid Parentheses 
+[LeetCode 20](https://leetcode.com/problems/valid-parentheses/description/): Given a string containing '()[]{}',
+determine if the input is valid.
+
+We use a stack to maintain the opening parentheses. When we see a closing one, we check the top of stack. If it's
+not a matching open parentheses, return false. Otherwise, if we have anything remaining on the stack when we've done
+scanning the string, we also return false. The code:
+
+```scala
+def isValid(s: String): Boolean = {
+  def valid(s: List[Char], stack: List[Char]): Boolean =
+    (s, stack) match {
+      case (Nil, Nil) => true
+      case (x::xs, _) if "[{(".contains(x) => valid(xs, x::stack)
+      case (x::xs, r::rs) if "]})".indexOf(x) == "[{(".indexOf(r) => valid(xs, rs)
+      case _ => false
+    }
+  valid(s.toList, Nil)
+}
+```
 
 # Merge Intervals
+[LeetCode 56](https://leetcode.com/problems/merge-intervals/description/): Given a collection of intervals, merge
+all overlapping intervals.
 
-# Valid Parentheses 
+We sort the intervals by their start element. Then:
+1. Look at the first 2 intervals <tt>x1::x2::xs</tt>. If they overllap, we merge them. We add the merged intervals
+   back for further examination
+2. Otherwise, interval <tt>x1</tt> is safely ignored as all start elements of other intervals are guaranteed to be no
+   less than the start element of <tt>x2</tt>
+
+This naturally produces code:
+
+```scala
+def merge(intervals: List[Interval]): List[Interval] = {
+  def doMerge(ints: List[Interval]): List[Interval] = {
+    ints match {
+      case x1::x2::xs if x2.start <= x1.end =>
+        doMerge(new Interval(x1.start, x1.end max x2.end)::xs)
+      case x::xs => x::doMerge(xs)
+      case Nil => Nil
+    }
+  }
+  doMerge(intervals.sortBy(_.start))
+}
+```
+
+But the code will result in stack overflow due to the depth of recursion. One solution is to change the code to tail call:
+
+```scala
+def merge(intervals: List[Interval]): List[Interval] = {
+  def doMerge(ints: List[Interval], result: List[Interval]): List[Interval] = {
+    ints match {
+      case x1::x2::xs if x2.start <= x1.end =>
+        doMerge(new Interval(x1.start, x1.end max x2.end)::xs, result)
+      case x::xs => doMerge(xs, x::result)
+      case Nil => result
+    }
+  }
+  doMerge(intervals.sortBy(_.start), Nil)
+}
+```
+
+But we could further improve the code using <tt>foldLeft</tt>:
+
+```scala
+def merge(intervals: List[Interval]): List[Interval] =
+  intervals.sortBy(_.start).foldLeft(List[Interval]()) {
+    case (r::rs, i) if i.start <= r.end =>
+      new Interval(r.start, i.end max r.end)::rs
+    case (rs, i) => i::rs
+  }
+```
+
+<tt>foldLeft</tt> is used as <tt>foldLeft(default)(binary op)</tt>, which repeatedly apply the operator
+<tt>binary op</tt> to a collection:
+
+```
+A = List(1, 2, 3, 4, 5)
+A.foldLeft(default)(op) =
+  ((((default op 1) op 2) op 3) op 4) op 5
+```
+
+In our case, <tt>op</tt> is the operation to merge intervals.
+

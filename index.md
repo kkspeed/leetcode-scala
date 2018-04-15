@@ -58,6 +58,11 @@ There are a few drawbacks to using Scala on LeetCode:
 2. Compilation can sometimes fail. This possibly is related to Scala's lengthy compilation time.
    When this happens, most likely a re-submit could fix it.
 
+## The Good Part of Using Scala
+1. It's fun! It's really a joy to come up with a functional solution.
+2. Scala's powerful collection APIs and features like pattern matching often results in
+   compact and easy to read code.
+
 # License
 The documentation is licensed under
 [Creative Commons License](https://creativecommons.org/licenses/by/4.0/).
