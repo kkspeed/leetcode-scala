@@ -126,7 +126,8 @@ The code thus is:
 def isMirrored(tree1: TreeNode, tree2: TreeNode): Boolean =
   if (tree1 == null && tree2 == null) true
   else if (tree1 == null || tree2 == null) false
-  else tree1.value == tree2.value && isMirrored(tree1.left, tree2.right) && isMirrored(tree1.right, tree2.left)
+  else tree1.value == tree2.value && isMirrored(tree1.left, tree2.right) &&
+         isMirrored(tree1.right, tree2.left)
 
 def isSymmetric(root: TreeNode): Boolean =
   if (root == null) true
