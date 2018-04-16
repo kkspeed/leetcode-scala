@@ -190,6 +190,98 @@ def wordPatternMatch(pattern: String, str: String): Boolean = {
 }
 ```
 
+## Zuma Game
+[LeetCode 488](https://leetcode.com/problems/zuma-game/description/): 
+Think about Zuma Game. You have a row of balls on the table, colored red(R),
+yellow(Y), blue(B), green(G), and white(W). You also have several balls in your hand.
+
+Each time, you may choose a ball in your hand, and insert it into the row (including
+the leftmost place and rightmost place). Then, if there is a group of 3 or more balls
+in the same color touching, remove these balls. Keep doing this until no more balls
+can be removed.
+
+Find the minimal balls you have to insert to remove all the balls on the table. If
+you cannot remove all the balls, output -1. 
+
+This problem requires coding some utility functions. The first one is
+<tt>insertionPoints</tt>, which finds all the appropriate points to insert current
+ball. We browse through the balls and insert it near another ball with the same
+color in the board. Or we default insert it to position 0:
+
+```scala
+def insertionPoints(board: String, ball: Char): List[Int] =
+  0::board.indices.filter(i => board(i) == ball).toList
+def insertBall(ball: Char, board: String): List[String] =
+  for {
+    p <- insertionPoints(board, ball)
+    (left, right) = board.splitAt(p)
+  } yield erase(left.reverse, right, ball)
+```
+
+Then <tt>insertBall</tt> is implemented by inserting the ball and simulating the
+cascaded erasing effect. The erasing process is performed by looking at current ball and
+its surroundings, if we find 3 or more consecutive balls, we perform the erasing. Then
+we take a look at the surrounding again and recursively apply this process. 
+
+```
+    v insert next W here
+GGWW GYY
+GGWWWGYY now we erase all 3 Ws
+ | we can cascade the process by assuming this G is inserted, and thus
+ v it triggers another round of erasing
+GG   GYY
+YY <- no more erase to perform
+
+```
+The erasing code is as follow:
+```scala
+  def erase(left: String, right: String, ball: Char): String = {
+    val newLeft = left.dropWhile(_ == ball)
+    val newRight = right.dropWhile(_ == ball)
+    if (left.length - newLeft.length + right.length - newRight.length < 2)
+      left.reverse + ball + right
+    else if (newLeft.nonEmpty && newRight.nonEmpty)
+      erase(newLeft.drop(1), newRight, newLeft.head)
+    else newLeft.reverse + newRight
+  }
+```
+
+Now the whole code is just trivial enumeration through all the possibilities and
+find the path that requires minimum move.
+
+```scala
+def findMinStep(board: String, hand: String): Int = {
+  val NOT_FOUND = hand.length + 1
+  def insertionPoints(board: String, ball: Char): List[Int] =
+    0::board.indices.filter(i => board(i) == ball).toList
+  def insertBall(ball: Char, board: String): List[String] =
+    for {
+      p <- insertionPoints(board, ball)
+      (left, right) = board.splitAt(p)
+    } yield erase(left.reverse, right, ball)
+  def erase(left: String, right: String, ball: Char): String = {
+    val newLeft = left.dropWhile(_ == ball)
+    val newRight = right.dropWhile(_ == ball)
+    if (left.length - newLeft.length + right.length - newRight.length < 2)
+      left.reverse + ball + right
+    else if (newLeft.nonEmpty && newRight.nonEmpty)
+      erase(newLeft.drop(1), newRight, newLeft.head)
+    else newLeft.reverse + newRight
+  }
+  def findMin(board: String, hand: String, steps: Int): Int =
+    if (board.isEmpty) steps
+    else if (hand.isEmpty) NOT_FOUND
+    else {
+      (for {
+        ball <- hand.distinct
+        rest <- insertBall(ball, board)
+      } yield findMin(rest, hand diff ball.toString, steps + 1)).min
+    }
+  val m = findMin(board, hand, 0)
+  if (m == NOT_FOUND) -1 else m
+}
+```
+
 # Breadth First Search
 
 ## Bus Routes
