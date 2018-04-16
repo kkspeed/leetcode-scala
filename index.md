@@ -34,6 +34,7 @@ is recommended.
 
 The documentation is (planned to be) divided into the following sections:
 
+
 1. [Basic Recursion](basic-recursion.md): 
     This section talks about trivial problems using only very basic function calls
 2. [Collections](collections.md): This section talks about Scala collections (hopefully) in depth
