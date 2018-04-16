@@ -354,6 +354,35 @@ def numIslands(grid: Array[Array[Char]]): Int = {
 
 ```
 
+## Walls and Gates
+[LeetCode 286](https://leetcode.com/problems/walls-and-gates/description/)
+
+The problem setting itself is impure in nature so we prefer in-place update during
+BFS. For each 0, we do a BFS and updates all cells that could be reached. Note that
+we could stop exploring if the cell is reachable from any previous explored gates and
+assigned a distance shorter than our current path length + 1:
+
+```scala
+def wallsAndGates(rooms: Array[Array[Int]]): Unit = {
+  import scala.collection.immutable.Queue
+  def bfs(queue: Queue[((Int, Int), Int)]): Unit = {
+    if (queue.nonEmpty) {
+      val (((row, col), steps), q) = queue.dequeue
+      val neighbors = List((row - 1, col), (row + 1, col), (row, col - 1),
+        (row, col + 1)).filter {
+        case ((r, c)) => r < rooms.length && r >= 0 && c < rooms(0).length &&
+          c >= 0 && rooms(r)(c) > steps + 1
+      }
+      for ((r, c) <- neighbors) rooms(r)(c) = steps + 1
+      bfs(q ++ neighbors.map(p => (p, steps + 1)))
+    }
+  }
+  for (r <- rooms.indices; c <- rooms(0).indices; if rooms(r)(c) == 0)
+    bfs(Queue(((r, c), 0)))
+}
+
+```
+
 ## Bus Routes
 [LeetCode 815](https://leetcode.com/problems/bus-routes/description/):
 We have a list of bus routes. Each routes[i] is a bus route that the i-th bus repeats forever.
