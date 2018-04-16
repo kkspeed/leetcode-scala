@@ -62,6 +62,9 @@ class MyQueue() {
 Note that this implementation is not idiomatic functional programming, but it's required by the prototype of
 LeetCode for this question.
 
+Scala provides <tt>scala.collections.immutable.Queue</tt>, <tt>scala.collections.mutable.Queue</tt> and
+<tt>scala.collections.mutable.PriorityQueue</tt>.
+
 # For Comprehension
 ## Ambiguous Coordinates
 [LeetCode 816](https://leetcode.com/problems/ambiguous-coordinates/description/): We have a 2D coordinate
@@ -190,6 +193,21 @@ def wordPatternMatch(pattern: String, str: String): Boolean = {
 }
 ```
 
+## All Paths from Source to Target
+[LeetCode 797](https://leetcode.com/problems/all-paths-from-source-to-target/description/):
+Given a directed acyclic graph, find all paths from source to target.
+
+This problem can be easily solved using lazy DFS. We construct all paths from source
+to other nodes then filter through the paths to find the paths that reaches target:
+
+```scala
+def allPathsSourceTarget(graph: Array[Array[Int]]): List[List[Int]] = {
+  def findPath(path: List[Int]): Stream[List[Int]] =
+    path #:: graph(path.head).toStream.flatMap(h => findPath(h :: path))
+  findPath(List(0)).filter(_.head == graph.length - 1).map(_.reverse).toList
+}
+```
+
 ## Zuma Game
 [LeetCode 488](https://leetcode.com/problems/zuma-game/description/): 
 Think about Zuma Game. You have a row of balls on the table, colored red(R),
@@ -254,11 +272,13 @@ def findMinStep(board: String, hand: String): Int = {
   val NOT_FOUND = hand.length + 1
   def insertionPoints(board: String, ball: Char): List[Int] =
     0::board.indices.filter(i => board(i) == ball).toList
+
   def insertBall(ball: Char, board: String): List[String] =
     for {
       p <- insertionPoints(board, ball)
       (left, right) = board.splitAt(p)
     } yield erase(left.reverse, right, ball)
+
   def erase(left: String, right: String, ball: Char): String = {
     val newLeft = left.dropWhile(_ == ball)
     val newRight = right.dropWhile(_ == ball)
@@ -268,6 +288,7 @@ def findMinStep(board: String, hand: String): Int = {
       erase(newLeft.drop(1), newRight, newLeft.head)
     else newLeft.reverse + newRight
   }
+
   def findMin(board: String, hand: String, steps: Int): Int =
     if (board.isEmpty) steps
     else if (hand.isEmpty) NOT_FOUND
@@ -277,12 +298,61 @@ def findMinStep(board: String, hand: String): Int = {
         rest <- insertBall(ball, board)
       } yield findMin(rest, hand diff ball.toString, steps + 1)).min
     }
+
   val m = findMin(board, hand, 0)
   if (m == NOT_FOUND) -1 else m
 }
 ```
 
 # Breadth First Search
+Most of the time, for enumeration purposes, you can choose between breadth first search
+and depth first search freely. However, breadth first search has one nice property:
+In a graph, if the edge weights are just 1, then the first found path to the target is
+the shortest path. So in questions like finding the shortest solution, BFS can be very
+desirable.
+
+## Number of Islands
+[LeetCode 200](https://leetcode.com/problems/number-of-islands/description/): Given a
+grid of 0s and 1s, count the number of islands. An island is defined by a region that
+consists of all 1s and surrounded by 0s or edges.
+
+This is an example that a little bit impurity can help. We use a <tt>visited</tt> array
+to store the islands that we have touched. Then for each 1 we encountered, we do a 
+bfs from it and mark all path we've touched as visited. We let bfs return 1 and sum up
+the number of times bfs has executed.
+
+```scala
+def numIslands(grid: Array[Array[Char]]): Int = {
+  if (grid.isEmpty) 0
+  else {
+    import scala.collection.immutable.Queue
+    val (rows, cols) = (grid.length, grid(0).length)
+    val visited = Array.fill(rows, cols)(false)
+
+    def bfs(queue: Queue[(Int, Int)]): Int = {
+      if (queue.isEmpty) 1
+      else {
+        val ((row, col), q) = queue.dequeue
+        val candidates = List((row - 1, col), (row + 1, col),
+          (row, col - 1), (row, col + 1)).filter {
+          case(r, c) =>
+            r >= 0 && r < rows && c >= 0 && c < cols &&
+              grid(r)(c) == '1' && !visited(r)(c)
+        }
+        for ((r, c) <- candidates) visited(r)(c) = true
+        bfs(q ++ candidates)
+      }
+    }
+
+    (for {
+      r <- grid.indices
+      c <- grid(0).indices
+      if grid(r)(c) == '1' && !visited(r)(c)
+    } yield bfs(Queue((r, c)))).sum
+  }
+}
+
+```
 
 ## Bus Routes
 [LeetCode 815](https://leetcode.com/problems/bus-routes/description/):
