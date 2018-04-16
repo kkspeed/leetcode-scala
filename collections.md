@@ -31,6 +31,20 @@ the number of elements in the collection that satisfy such predicate.
 Of course, there is easier solution to this problem as discussed
 [here](https://leetcode.com/problems/bulb-switcher/discuss/77104/Math-solution..).
 
+# Output Contest Matches
+[LeetCode 544](https://leetcode.com/problems/output-contest-matches/description/)
+
+For this question, we just need to zip the first half of the list with the second half revered. We
+repeat this until the length of the list is 1.
+
+```scala
+def findContestMatch(n: Int): String = {
+  def construct[T](ls: List[T]): String =
+    if (ls.length == 1) ls.mkString
+    else construct(ls.take(ls.length / 2) zip ls.drop(ls.length / 2).reverse)
+  construct((1 to n).toList)
+}
+```
 
 # Can Place Flowers
 [LeetCode 605](https://leetcode.com/problems/can-place-flowers/description/): Given an array of a number
