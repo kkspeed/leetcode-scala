@@ -12,8 +12,48 @@ Make sure you know laziness in Scala.
 I find [Week 2 of Functional Program Design in Scala](https://www.coursera.org/learn/progfun2/home/week/2)
 very accessible 
 
+# Trivial Dynamic Programming
+Some dynamic programming only requires taking a look at recent finite number of inputs.
+Such question can be solved with easy <tt>array.sliding(n).foldLeft()</tt> or use
+<tt>scanLeft</tt> if you need intermediate results (e.g. check max, min etc).
+
+## Max Consecutive Ones
+[LeetCode 485](https://leetcode.com/problems/max-consecutive-ones/description/):
+Given a binary array, find the maximum number of consecutive 1s in this array.
+
+This problem could be trivially solved with one-liner:
+
+```scala
+def findMaxConsecutiveOnes(nums: Array[Int]): Int =
+  nums.scanLeft(0)((m, x) => if (x == 0) 0 else m + 1).max
+```
+
+We just need to memorize the number of consecutive ones at current point. Then select
+the max value.
+
 # Imperative Dynamic Programming
+Scala's array can be mutable. Thus you can write dynamic programming code in the traditional
+way by using <tt>for</tt> loops.
+
+## Coin Path
+[LeetCode 656](https://leetcode.com/problems/coin-path/description/)
+
+For each location, you can store the smallest path (ordered by number of jumps and / or lexical
+order of the path).
+
+```scala
+def cheapestJump(A: Array[Int], B: Int): List[Int] = {
+  import scala.math.Ordering.Implicits._
+  val dp = A.map(_ => (Int.MaxValue, List[Int]())).updated(0, (A(0), List(0)))
+  for (i <- A.indices; if A(i) != -1 && dp(i)._2.nonEmpty;
+       j <- 1 to B; if i + j < A.length && A(i + j) != -1)
+    dp(i + j) = dp(i + j) min (dp(i)._1 + A(i + j), dp(i)._2 :+ (i + j))
+  dp.last._2.map(_ + 1)
+}
+```
+
 # Top Down Dynamic Programming
+
 # Lazy Dynamic Programming
 The idea is from [this article](http://jelv.is/blog/Lazy-Dynamic-Programming/), which
 talks about lazy dynamic programming in Haskell. With a little bit of tweak, we can
@@ -31,7 +71,19 @@ class Lazy[T] (expr : => T) {
 object Lazy{ def apply[T](expr : => T) = new Lazy(expr) }
 ```
 
+Now lazy dynamic programming just follows the pattern:
+
+```scala
+def go(i: Int, j: Int, ...): Lazy[Type] = Lazy {
+    do computation
+}
+
+lazy val mem = Array.tabulate[Lazy[Type]](indices...)(go)
+```
+
 ## Fibonacci Number
+A trivial example that computes the nth Fibonacci number.
+
 ```scala
 def fib(n: Int): Int = {
   def doFib(i: Int): Lazy[Int] = Lazy {
@@ -52,6 +104,16 @@ You have the following 3 operations permitted on a word:
 1. Insert a character
 2. Delete a character
 3. Replace a character
+
+We use A[i, j] to denote the edit distance of word1[:i] and word2[:j].
+Then we have:
+
+```
+A[i, j] = j if i == 0
+A[i, j] = i if j == 0
+A[i, j] = A[i - 1, j - 1] if word1[i] == word2[j]
+A[i, j] = min(A[i, j - 1], A[i - 1, j], A[i - 1, j - 1]) + 1 otherwise
+```
 
 ```scala
 def editDistance(s1: String, s2: String): Int = {
