@@ -34,6 +34,8 @@ detailed explanation.
 
 ```scala
 trait PairHeap extends Heap {
+  // A pairing heap contains a smallest element and a list of
+  // subheaps.
   case class PairingTree(elem: A, subheaps: List[PairingTree])
 
   abstract class PairingHeap
@@ -51,6 +53,8 @@ trait PairHeap extends Heap {
 
   override def insert(x: A, h: H): H =
     meld(Tree(PairingTree(x, Nil)), h)
+  // meld merges two PairingHeap by taking the minimum of the
+  // two as the minimum element and merges list of trees.
   override def meld(h1: H, h2: H): H =
     (h1, h2) match {
       case (Empty, p2) => p2
@@ -67,6 +71,8 @@ trait PairHeap extends Heap {
       case Empty => sys.error("empty heap")
       case Tree(PairingTree(e, _)) => e
     }
+  // deleteMin is implemented with a helper mergePairs which
+  // merges the list of trees into one heap.
   def deleteMin(h: H): H =
     h match {
       case Empty => sys.error("deleting empty heap")
