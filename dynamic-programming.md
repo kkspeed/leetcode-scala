@@ -75,6 +75,38 @@ def cheapestJump(A: Array[Int], B: Int): List[Int] = {
 ```
 
 # Top Down Dynamic Programming
+Dynamic programming formulas are typically written in the form like <tt>f(n) = f(n-1) + ...(fn-i)</tt>.
+Thus, it's natural to consider a top-down approach.
+
+## Russian Doll Envelops
+[LeetCode 354](https://leetcode.com/problems/russian-doll-envelopes/description/):
+Given a list of envelopes in form of <tt>(width, height)</tt>. An envelope <tt>A</tt> can fit into <tt>B</tt>
+iff <tt>A.width < B.width && A.height < B.height</tt>.
+
+This problem is naturally expressed as the following formula:
+```
+Let E[R] represents the number of envelopes that can be put into R.
+E[R] = max{E[R1], E[R2]...} + 1 if Ri can fit into R.
+```
+
+To implement a topdown memoization, we use a mutable map to memorize the answer to the subproblem:
+
+```scala
+def maxEnvelopes(envelopes: Array[Array[Int]]): Int = {
+  if (envelopes.isEmpty) return 0
+  val dolls = envelopes.map(m => (m(0), m(1))).toList
+  val map = scala.collection.mutable.Map[(Int, Int), Int]()
+  def envel(d: (Int, Int)): Int =
+    if (map.contains(d)) map(d)
+    else {
+      val candidates = dolls.filter { case (x, y) => x < d._1 && y < d._2 }
+      if (candidates.isEmpty) map(d) = 1
+      else map(d) = 1 + candidates.map(envel).max
+      map(d)
+    }
+  dolls.map(envel).max
+}
+```
 
 # Lazy Dynamic Programming
 The idea is from [this article](http://jelv.is/blog/Lazy-Dynamic-Programming/), which
