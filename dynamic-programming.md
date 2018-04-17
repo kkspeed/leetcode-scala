@@ -28,6 +28,28 @@ def findMaxConsecutiveOnes(nums: Array[Int]): Int =
   nums.scanLeft(0)((m, x) => if (x == 0) 0 else m + 1).max
 ```
 
+## Min Cost Climbing Stairs
+[LeetCode 746](https://leetcode.com/problems/min-cost-climbing-stairs/description/):
+On a staircase, the i-th step has some non-negative cost cost[i] assigned (0 indexed).
+Once you pay the cost, you can either climb one or two steps. You need to find minimum
+cost to reach the top of the floor, and you can either start from the step with index 0,
+or the step with index 1. 
+
+Notice that we are only interested in state i - 1 and i - 2, since they are the only states
+that determines i. Thus, we can use <tt>cost.sliding(2)</tt> to look at <tt>i - 1, i - 2</tt>.
+Then for accumulated cost, we update the costs accordingly:
+
+```
+cost[i] = min(cost[i - 1] + c[i - 1], cost[i - 2] + c[i - 2])
+```
+
+```scala
+def minCostClimbingStairs(cost: Array[Int]): Int =
+  cost.sliding(2).foldLeft((0, 0)) {
+    case((a0, a1), Array(b0, b1)) => (a1 min a0 + b0, a0 + b0 min a1 + b1)
+  }._2
+```
+
 We just need to memorize the number of consecutive ones at current point. Then select
 the max value.
 
