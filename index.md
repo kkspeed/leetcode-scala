@@ -38,11 +38,12 @@ The documentation is (planned to be) divided into the following sections:
 1. [Basic Recursion](basic-recursion.md): 
     This section talks about trivial problems using only very basic function calls
 2. [Collections](collections.md): This section talks about Scala collections (hopefully) in depth
-3. [Search](search.md): This section explores mostly depth-first search and breadth-first search
-4. [Dynamic Programming](dynamic-programming.md): This section talks about how to solve dynamic
+3. [Priority Queue](priority-queue.md): Introduces a functional priority implementation.
+4. [Search](search.md): This section explores mostly depth-first search and breadth-first search
+5. [Dynamic Programming](dynamic-programming.md): This section talks about how to solve dynamic
    programming problems in Scala
-5. Parsing: This section explores unique approach to parsing problems with Parser Monad
-6. Functional Reactive Programming: This section presents FRP approach to a small number of
+6. Parsing: This section explores unique approach to parsing problems with Parser Monad
+7. Functional Reactive Programming: This section presents FRP approach to a small number of
    (currently only one :p) problems.
 
 ## Moral
