@@ -208,6 +208,72 @@ def allPathsSourceTarget(graph: Array[Array[Int]]): List[List[Int]] = {
 }
 ```
 
+## isAdditiveNumber
+[LeetCode 306](https://leetcode.com/problems/additive-number/description/):
+Tell if a string can be divided into a series of additive numbers.
+Additive numbers are a list numbers whose length is at least 3. And each number
+except the first 2 is a sum of previous 2 numbers.
+
+I think the most interesting part about this problem is how we generate a series
+of numbers. One way of doing this is:
+
+```scala
+def chop(s: String): Stream[Stream[Int]] = {
+  if (s.length == 0) Stream(Stream.empty)
+  else if (s.length == 1) Stream(Stream(s.toInt))
+  else for {
+    i <- (1 to s.length).toStream
+    (ss, rest) <- s.splitAt(i)
+    rss <- chop(rest)
+  } yield ss.toInt +: rss
+}
+```
+Then we can have a predicate <tt>isAdditive</tt> to test if the sequence is
+additive sequence:
+```scala
+def isAdditive(nums: Stream[Long]): Boolean =
+  nums.take(3).length >= 3 && nums.sliding(3).forall {
+    case Stream(a, b, c) => c == a + b
+  }
+```
+
+Now the whole program is trivially written as:
+
+```scala
+def isAdditiveNumber(num: String): Boolean =
+  chop(num).exists(isAdditive)
+```
+
+But this solution will result in TLE in LeetCode. So what improvements could
+we do? One improvement is that the sequence should be monotonically increasing
+from the 3rd element since they are non-negative numbers, which implies that
+the length of number <tt>num[i]</tt> is at least the length of <tt>num[i-1]</tt>
+for <tt>i >= 3</tt>. The solution would look as follows. Note that I replaced
+<tt>Int</tt> with <tt>Long</tt> to address potential overflow with 32-bit
+integers.
+
+```scala
+def isAdditiveNumber(num: String): Boolean = {
+  def chop(d: Int, minLength: Long, s: String): Stream[Stream[Long]] =
+    if (s.length == 0) Stream(Stream.empty)
+    else if (s.length == 1) Stream(Stream(s.toLong))
+    else {
+      val start = if (d < 2) 1l else minLength
+      for {
+        i <- (start to (s.length.toLong min 10l)).toStream
+        (ss, rest) = s.splitAt(i.toInt)
+        if !(ss.length > 1 && ss.startsWith("0"))
+        rss <- chop(d + 1, ss.length.toLong, rest)
+      } yield ss.toLong +: rss
+    }
+  def isAdditive(nums: Stream[Long]): Boolean =
+    nums.length >= 3 && nums.sliding(3).forall {
+      case Stream(a, b, c) => c == a + b
+    }
+  chop(0, 1, num).exists(isAdditive)
+}
+```
+
 ## Zuma Game
 [LeetCode 488](https://leetcode.com/problems/zuma-game/description/): 
 Think about Zuma Game. You have a row of balls on the table, colored red(R),
