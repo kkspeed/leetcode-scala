@@ -119,6 +119,33 @@ def isValid(s: String): Boolean = {
 }
 ```
 
+# Swap Adjacent in LR String
+[LeetCode 777](https://leetcode.com/problems/swap-adjacent-in-lr-string/description/)
+In a string composed of 'L', 'R', and 'X' characters, like "RXXLRXRXL", a move consists of either replacing one
+occurrence of "XL" with "LX", or replacing one occurrence of "RX" with "XR". Given the starting string start and
+the ending string end, return True if and only if there exists a sequence of moves to transform one string to
+the other.
+
+The problem could solved based on 3 conditions:
+
+1. Both strings have same length
+2. Both strings have same number of 'L's and 'R's
+3. All 'L's indices in <tt>end</tt> are smaller or equal to their indices in <tt>start</tt> and
+   all 'R's indices in <tt>end</tt> are greater or equal to their indices in <tt>start</tt>
+
+```scala
+def canTransform(start: String, end: String): Boolean = {
+  val sv = start.zipWithIndex.filterNot(_._1 == 'X')
+  val ev = end.zipWithIndex.filterNot(_._1 == 'X')
+  start.length == end.length && sv.length == ev.length &&
+    (sv, ev).zipped.forall {
+      case (('L', i1), ('L', i2)) => i1 >= i2
+      case (('R', i1), ('R', i2)) => i1 <= i2
+      case _ => false
+    }
+}
+```
+
 # Merge Intervals
 [LeetCode 56](https://leetcode.com/problems/merge-intervals/description/): Given a collection of intervals, merge
 all overlapping intervals.
@@ -182,4 +209,5 @@ A.foldLeft(default)(op) =
 ```
 
 In our case, <tt>op</tt> is the operation to merge intervals.
+
 
