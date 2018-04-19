@@ -220,4 +220,84 @@ else Repeated(1, stringList.parse(s.toList).left.get._1).toString
 Note that we could also add the empty string check to the parser itself. Can you do that
 as an exercise?
 
-# 
+# Parse Lisp Expression 
+[LeetCode 736](https://leetcode.com/problems/parse-lisp-expression/description/):
+This problem requires you to write an interpreter for a subset of Lisp expressions.
+The expressions are:
+
+1. Integer
+2. '(' and ')' wrapped forms with fixed types:
+  - <tt>(add x y ...)</tt> sums all the numbers 
+  - <tt>(mult x y ...)</tt> calculates the product of the numbers
+  - <tt>(let x <expr> y <expr> ... <last\_expr>)</tt> the let expression binds variables
+    in a couple of expressions and use this new environment to evaluate the last expression.
+
+We can start out by defining the AST:
+
+```scala
+// Base lisp expression trait
+trait LispExpr {
+  // evaluate the expression. It takes in a map of "environment" for variable look up.
+  def evalu(env: Map[String, Int]): Int
+  def getV: String = sys.error("not able to get var")
+}
+// Integer atom
+case class IntExpr(i: Int) extends LispExpr {
+  override def evalu(env: Map[String, Int]): Int = i
+}
+// Variable atom
+case class VarExp(v: String) extends LispExpr {
+  override def evalu(env: Map[String, Int]): Int = env(v)
+  override def getV: String = v
+}
+// Sexp is an expression enclosed in '(', ')'
+case class Sexp(exprs: List[LispExpr]) extends LispExpr {
+  override def evalu(env: Map[String, Int]): Int = {
+    exprs.head match {
+      case VarExp("add") => exprs.tail.map(_.evalu(env)).sum
+      case VarExp("mult") => exprs.tail.map(_.evalu(env)).product
+      case VarExp("let") =>
+        // Environment variable bindings are updated in let expression.
+        // Potentially it could override the existing bindings.
+        val newEnv = exprs.tail.init.grouped(2).foldLeft(env) {
+          case (e, List(v, expr)) => e + (v.getV -> expr.evalu(e))
+        }
+        exprs.last.evalu(newEnv)
+      case _ => sys.error("unexpected sexp: " + this)
+    }
+  }
+}
+```
+
+The parsing part is written as:
+
+```scala
+def alphaNumeric: Parser[Char] = oneOf("abcdefghijklmnopqrstuvwxyz0123456789".toList.map(chr))
+
+// Parses atom for integer and variable
+def atom: Parser[LispExpr] = for {
+  e <- many1(digit).or_else(many1(alphaNumeric))
+  s = e.mkString
+} yield {
+  if (s(0) == '+' || s(0) == '-' || (s(0) >= '0' && s(0) <= '9'))
+    IntExpr(s.toInt)
+  else
+    VarExp(s)
+}
+
+// Parse '(' and ')' wrapped sexp.
+def sexp: Parser[LispExpr] = atom.or_else(for {
+  _ <- chr('(')
+  ss <- sepBy(' ', sexp)
+  _ <- chr(')')
+} yield Sexp(ss))
+```
+
+Now we the evaluation could be written as:
+
+```scala
+sexp.parse(expression.toList) match {
+  case Left((expr, _)) => expr.evalu(Map())
+  case Right(s) => sys.error(s)
+}
+```
