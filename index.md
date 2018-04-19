@@ -42,7 +42,7 @@ The documentation is (planned to be) divided into the following sections:
 4. [Search](search.md): This section explores mostly depth-first search and breadth-first search
 5. [Dynamic Programming](dynamic-programming.md): This section talks about how to solve dynamic
    programming problems in Scala
-6. Parsing: This section explores unique approach to parsing problems with Parser Monad
+6. [Parsing](parsing.md): This section explores unique approach to parsing problems with Parser Monad
 7. Functional Reactive Programming: This section presents FRP approach to a small number of
    (currently only one :p) problems.
 
