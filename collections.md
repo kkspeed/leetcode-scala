@@ -210,4 +210,28 @@ A.foldLeft(default)(op) =
 
 In our case, <tt>op</tt> is the operation to merge intervals.
 
+# Next Greater Elements II
+Given a circular array (the next element of the last element is the first element of the array), print the Next
+Greater Number for every element. The Next Greater Number of a number x is the first greater number to its
+traversing-order next in the array, which means you could search circularly to find its next greater number.
+If it doesn't exist, output -1 for this number. 
+
+The idea is to keep a stack of <tt>(elem, index)</tt> and the stack is kept in decreasing order. Whenever we 
+encounter an element <tt>N</tt> that's greater than the stack's top element, we keep pop until the head element
+in the stack is no less than current element. For these elements, we update their greater element to <tt>N</tt>.
+
+For Scala, we could use a <tt>Map</tt> to keep the updates and populate it with Array.tabulate. Popping stack
+is easily done with <tt>List.span</tt>, which is essentially <tt>(List.takeWhile, List.dropWhile)</tt>.
+
+```scala
+def nextGreaterElements(nums: Array[Int]): Array[Int] = {
+  val (_, updates) = (nums ++ nums).zipWithIndex.foldLeft(
+    List[(Int, Int)](), Map[Int, Int]().withDefaultValue(-1)) {
+    case ((xs, ws), n) =>
+      val (res, remain) = xs.span(c => c._1 < n._1)
+      (n::remain, ws ++ res.map(p => (p._2, n._1)))
+  }
+  Array.tabulate(nums.length)(updates)
+}
+```
 
