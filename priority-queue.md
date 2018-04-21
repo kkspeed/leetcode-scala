@@ -121,6 +121,82 @@ def nthUglyNumber(n: Int): Int = {
   nth(n, LongHeap.insert(1, LongHeap.empty), Set(1)).toInt
 }
 ```
+# IPO
+[LeetCode 502](https://leetcode.com/problems/ipo/description/)
+
+We iterate <tt>k</tt> times. For each time, we put every project that could be done under 
+current budge into the heap. And we pick the one that maixmize our profit. We continue this
+process until we either have no projects within budget to do or we've done with <tt>k</tt>
+times. The code is:
+
+```scala
+def findMaximizedCapital(k: Int, W: Int, Profits: Array[Int], Capital: Array[Int]): Int = {
+  val queue = scala.collection.mutable.PriorityQueue()(Ordering[(Int, Int)])
+  def iter(k: Int, w: Int, projects: Array[(Int, Int)]): Int =
+    if (k == 0) w
+    else {
+      val (canDo, rest) = projects.span(_._2 <= w)
+      queue.enqueue(canDo: _*)
+      if (queue.isEmpty) w
+      else {
+        val profit = queue.dequeue
+        iter(k - 1, w + profit._1, rest)
+      }
+    }
+  iter(k, W, Profits.zip(Capital).sortBy(_._2))
+}
+```
+
+Sorting needs <tt>O(nlogn)</tt>. We at most will put <tt>N</tt> elements into the heap, which 
+could be <tt>O(nlogn)</tt> if we are using a binary heap. Then we perform <tt>deleteMin</tt>
+<tt>k</tt> times, which is <tt>O(klogn)</tt> so the total runtime is <tt>O(nlogn)</tt> assume
+<tt>k < n</tt>.
+
+We could use our functional PairingHeap as well. Since PairingHeap's insertion time is
+<tt>O(1)</tt>, it actually performs better than the mutable PriorityQueue based implementation.
+
+```scala
+def findMaximizedCapital(k: Int, W: Int, Profits: Array[Int], Capital: Array[Int]): Int = {
+  object ProfitHeap extends PairHeap {
+    override type A = (Int, Int)
+    override val ord: Ordering[A] = Ordering[A].reverse
+  }
+  def iter(k: Int, w: Int, projects: Array[(Int, Int)], heap: ProfitHeap.H): Int =
+    if (k == 0) w
+    else {
+      val (canDo, rest) = projects.span(_._2 <= w)
+      val choices = canDo.foldLeft(heap)((h, i) => ProfitHeap.insert(i, h))
+      if (ProfitHeap.isEmpty(choices)) w
+      else iter(k - 1, w + ProfitHeap.findMin(choices)._1, rest,
+        ProfitHeap.deleteMin(choices))
+    }
+  iter(k, W, Profits.zip(Capital).sortBy(_._2), ProfitHeap.empty)
+}
+```
+
+For a shorter code, we could augment our heap and make it more forgiving when handling empty heap.
+Then the code could be more concise:
+
+```scala
+def findMaximizedCapital(k: Int, W: Int, Profits: Array[Int], Capital: Array[Int]): Int = {
+  object ProfitHeap extends PairHeap {
+    override type A = (Int, Int)
+    override val ord: Ordering[A] = Ordering[A].reverse
+    override def findMin(h: H): A = if (isEmpty(h)) (0, 0) else super.findMin(h)
+    override def deleteMin(h: H): H = if (isEmpty(h)) h else super.deleteMin(h)
+  }
+  (1 to k).foldLeft((W, Profits.zip(Capital).sortBy(_._2), ProfitHeap.empty)) {
+    case ((w, future, heap), _) =>
+      val (canDo, rest) = future.span(_._2 <= w)
+      val choices = canDo.foldLeft(heap)((h, i) => ProfitHeap.insert(i, h))
+      (w + ProfitHeap.findMin(choices)._1, rest, ProfitHeap.deleteMin(choices))
+  }._1
+}
+```
+
+Note that in this implementation, we do not short circuit if we find nothing to do, which might
+incur additional overhead under certain input. Though LeetCode OJ's data do not seem to have
+this type of test case.
 
 # Remark
 You don't have to re-invent the wheel in the real world. Scala has
