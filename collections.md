@@ -235,3 +235,27 @@ def nextGreaterElements(nums: Array[Int]): Array[Int] = {
 }
 ```
 
+# Sequence Reconstruction:
+[LeetCode 444](https://leetcode.com/problems/sequence-reconstruction/description/)
+
+This quesstion is basically asking whether we can construct a unique topological order of the nodes.
+We check 3 conditions. They are inlined in the comments:
+
+```scala
+def sequenceReconstruction(org: Array[Int], seqs: List[List[Int]]): Boolean = {
+  // Condition 1: org and seqs contain same set of nodes
+  seqs.flatten.toSet == org.toSet && {
+    // Constructs the edge set. We pick edges by grouping every 2 nodes in the sequence
+    val edges = seqs.filter(_.length >= 2).map(l => l zip l.tail).foldLeft(Set[(Int, Int)]())(_ ++ _)
+    // We assume org is the topological order.
+    val imap = Map(org.zipWithIndex: _*)
+
+    // Condition 2: every pair in org should be an edge. This guarantees unique topological
+    //   order: https://en.wikipedia.org/wiki/Topological_sorting#Uniqueness
+    // Condition 3: every edge in seq should not be back edge, aka topological order of
+    //   starting node should always be smaller than ending node.
+    org.zip(org.tail).forall(edges.contains) && edges.forall(e => imap(e._1) < imap(e._2))
+  }
+}
+
+```
