@@ -277,3 +277,34 @@ def employeeFreeTime(schedule: List[List[Interval]]): List[Interval] =
     case List(i1, i2) => new Interval(i1.end, i2.start)
   }.toList.filterNot(i => i.start == i.end)
 ```
+
+# The Skyline Problem
+[LeetCode 218](https://leetcode.com/problems/the-skyline-problem/description/)
+
+From the problem we observe that the skyline points are those at which the max
+height changes. To keep track of the currently highest line segment, we use a 
+map to keep a "ref counted value" for this height. Whenever we encounter a
+segment starting point, we increase the ref count. Whenever we encounter a
+segment ending point, we decrease the ref count. This is a lot like matching
+balancing parentheses when there is only '(' and ')', for which we could use
+a ref counter instead of a stack. Here for map we use tree map instead of
+hash map as we'll need to keep track of the maximum value:
+
+```scala
+def getSkyline(buildings: Array[Array[Int]]): List[Array[Int]] = {
+  import scala.collection.immutable.TreeMap
+  buildings.flatMap(a => Array((a(0), 0, a(2)), (a(1), 1, a(2)))).sorted
+    .foldLeft((List[Array[Int]](), TreeMap[Int, Int]().withDefaultValue(0))) {
+      case ((result, map), (p, 0, h)) =>
+        val newMap = map.updated(h, map(h) + 1)
+        (Array(p, newMap.last._1)::result, newMap)
+      case ((result, map), (p, _, h)) =>
+        val newMap = if (map(h) == 1) map - h else map.updated(h, map(h) - 1)
+        (Array(p, newMap.lastOption.map(_._1).getOrElse(0))::result, newMap)
+    }._1.foldLeft(List[Array[Int]]()) {
+      case (x::xs, r) if r(0) == x(0) => x::xs
+      case (x::xs, r) if r(1) == x(1) => r::xs
+      case (xs, r) => r::xs
+  }
+}
+```
