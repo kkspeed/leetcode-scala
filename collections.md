@@ -211,6 +211,8 @@ A.foldLeft(default)(op) =
 In our case, <tt>op</tt> is the operation to merge intervals.
 
 # Next Greater Elements II
+[LeetCode 503] (https://leetcode.com/problems/next-greater-element-ii/description/)
+
 Given a circular array (the next element of the last element is the first element of the array), print the Next
 Greater Number for every element. The Next Greater Number of a number x is the first greater number to its
 traversing-order next in the array, which means you could search circularly to find its next greater number.
@@ -257,5 +259,21 @@ def sequenceReconstruction(org: Array[Int], seqs: List[List[Int]]): Boolean = {
     org.zip(org.tail).forall(edges.contains) && edges.forall(e => imap(e._1) < imap(e._2))
   }
 }
+```
 
+# Employee Free Time
+[LeetCode 759](https://leetcode.com/problems/employee-free-time/description/)
+
+You could utilize that "employee's time is sorted" to do an N-way merge sort but
+for this particular problem, simply flatten the time and sort them would successfully
+pass the OJ.
+
+```scala
+def employeeFreeTime(schedule: List[List[Interval]]): List[Interval] =
+  schedule.flatten.sortBy(_.start).foldLeft(List[Interval]()) {
+    case (x::xs, i) if i.start < x.end => new Interval(x.start, i.end max x.end)::xs
+    case (xs, i) => i::xs
+  }.reverse.sliding(2).filter(_.length == 2).map {
+    case List(i1, i2) => new Interval(i1.end, i2.start)
+  }.toList.filterNot(i => i.start == i.end)
 ```
