@@ -308,3 +308,39 @@ def getSkyline(buildings: Array[Array[Int]]): List[Array[Int]] = {
   }
 }
 ```
+
+# Falling Squares
+[LeetCode 699](https://leetcode.com/problems/falling-squares/description/)
+
+On an infinite number line (x-axis), we drop given squares in the order they are given.
+
+The i-th square dropped (positions[i] = (left, side\_length)) is a square with the
+left-most point being positions[i][0] and sidelength positions[i][1].
+
+The square is dropped with the bottom edge parallel to the number line, and from a
+higher height than all currently landed squares. We wait for each square to stick
+before dropping the next.
+
+The squares are infinitely sticky on their bottom edge, and will remain fixed to any
+positive length surface they touch (either the number line or another square). Squares
+dropped adjacent to each other will not stick together prematurely.
+
+Return a list ans of heights. Each height ans[i] represents the current highest height
+of any square we have dropped, after dropping squares represented by positions[0],
+positions[1], ..., positions[i]. 
+
+The problem's "hard" tag is pretty misleading. Actually we just need to brutal force it.
+For every newly dropped square <tt>(x, h)</tt>, find the highest square that intersects
+this one (assume the height for that square is <tt>H</tt>, if none is found, <tt>H = 0</tt>)
+then add this square into the set of squares with <tt>h = h + H</tt>:
+
+```scala
+def fallingSquares(positions: Array[Array[Int]]): List[Int] =
+  positions.scanLeft(Seq[(Int, Int, Int)]()) {
+    case (intervals, Array(x, h)) =>
+      intervals.filter(i => !(i._2 <= x || x + h <= i._1)) match {
+        case Seq() => (x, x + h, h) +: intervals
+        case ints => (x, x + h, h + ints.maxBy(_._3)._3) +: intervals
+      }
+  }.tail.map(_.maxBy(_._3)._3).toList
+```
