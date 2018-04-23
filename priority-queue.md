@@ -245,10 +245,16 @@ def isPossible(nums: Array[Int]): Boolean = {
     override def deleteMin(h: H): H =
       if (isEmpty(h)) h else super.deleteMin(h)
   }
+  // Add an implicit class for Pimp My Library pattern that extends Map
+  // with a function updateF(k, f) that updates the map by applying function f
+  // at key k.
+  implicit class UpdateMap[A, B](map: Map[A, B]) {
+    def updateF(key: A, f: B => B): Map[A, B] = map.updated(key, f(map(key)))
+  }
   nums.foldLeft[Map[Int, NumHeap.H]](Map().withDefaultValue(NumHeap.empty)) {
-    (map, n) => map.updated(n + 1,
-      NumHeap.insert(NumHeap.findMin(map(n)) + 1, map(n + 1)))
-      .updated(n, NumHeap.deleteMin(map(n)))
+    (map, n) =>
+      map.updateF(n + 1, h => NumHeap.insert(NumHeap.findMin(map(n)) + 1, h))
+      .updateF(n, NumHeap.deleteMin)
   }.values.filterNot(NumHeap.isEmpty).forall(x => NumHeap.findMin(x) >= 3)
 }
 ```
