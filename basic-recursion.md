@@ -135,6 +135,50 @@ def isSymmetric(root: TreeNode): Boolean =
   else isMirrored(root.left, root.right)
 ```
 
+# Find Permutation
+[LeetCode 484](https://leetcode.com/problems/find-permutation/description/)
+
+The idea is to use a stack to decide what numbers we could output:
+
+- Whenever we see I, we pop every number on the stack and meanwhile and output the next number
+- Whenever we see D, we push current number onto stack
+- If there is no more character, we pop ever number on the stack and output. Then we output 
+  the rest of the numbers.
+
+An execution would look like:
+
+```
+IIDDII, candidates: [1, 2, 3, 4, 5, 6, 7]
+^ we see I, so just output 1. output = [1] stack = []
+IIDDII, candidates: [2, 3, 4, 5, 6, 7]
+ ^ we see I, so just output 2. output = [1, 2], stack = []
+IIDDII, candidates: [3, 4, 5, 6, 7]
+  ^ we see D, push it on the stack. output = [1, 2], stack = [3]
+IIDDII, candidates: [3, 4, 5, 6, 7]
+   ^ we see D, push it on the stack. output = [1, 2], stack = [3, 4]
+IIDDII
+    ^ we see I, pop everthing from the stack and output. Then output the next number: output = [1, 2, 4, 3, 5], stack = []
+IIDDII
+     ^ we see I, output hte number. output = [1, 2, 4, 3, 5, 6], stack = []
+IIDDII
+      ^ we still have 1 more number, directly output: output = [1, 2, 4, 3, 5, 6, 7], stack = []
+```
+
+Note in actual implementation, the numbers are kept in reverse order.
+
+```scala
+def findPermutation(s: String): Array[Int] = {
+  def doFind(s: List[Char], stack: List[Int], nums: List[Int], output: List[Int]): List[Int] =
+     s match {
+      case 'D'::xs => doFind(xs, nums.head :: stack, nums.tail, output)
+      case 'I'::xs =>
+        doFind(xs, Nil, nums.tail, stack.reverse ++ List(nums.head) ++ output)
+      case _ => stack.reverse ++ nums ++ output
+    }
+  doFind(s.toList, Nil, (1 to s.length + 1).toList, Nil).reverse.toArray
+}
+```
+
 # Tail Recursion
 A problem with recursion is that it might use up all the stack frames, causing stack overflow.
 An example is:
