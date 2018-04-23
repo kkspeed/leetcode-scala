@@ -214,3 +214,52 @@ def isInterleave(s1: String, s2: String, s3: String): Boolean = {
   (s1.length + s2.length == s3.length) && go(s1.length, s2.length).value
 }
 ```
+
+## Binary Tree with Factors
+[LeetCode 823](https://leetcode.com/problems/binary-trees-with-factors/description/)
+
+Given an array of unique integers, each integer is strictly greater than 1.
+
+We make a binary tree using these integers and each number may be used for any number of times.
+
+Each non-leaf node's value should be equal to the product of the values of it's children.
+
+How many binary trees can we make?  Return the answer modulo 10 ** 9 + 7.
+
+```
+Example 1:
+Input: A = [2, 4]
+Output: 3
+Explanation: We can make these trees: [2], [4], [4, 2, 2]
+
+Example 2:
+Input: A = [2, 4, 5, 10]
+Output: 7
+Explanation: We can make these trees: [2], [4], [5], [10], [4, 2, 2], [10, 2, 5], [10, 5, 2].
+```
+
+Let <tt>mem(i)</tt> denote the number of trees with root <tt>A(i)</tt>. Then:
+
+```
+mem(i) = max(1, sum(for k in [0 .. i - 1] A(k) * mem(indexOf(A(i) / A(k)))  if A(i) / A(k) is in A))
+```
+
+It means if we find A(k) * A(j) = A(i), then there must exist binary tree(s), with A(i) at root and
+A(k), A(j) being the roots of left and right subtrees.
+
+We use lazy dynamic programming:
+
+```scala
+def numFactoredBinaryTrees(A: Array[Int]): Int = {
+  val S = A.sorted
+  val revMap = S.zipWithIndex.toMap
+  val mod = 1000000007l
+  def doNumFactored(i: Int): Lazy[Long] = Lazy {
+    (0 until i).filter(j => S(i) % S(j) == 0 && revMap.contains(S(i) / S(j)))
+      .map(j => (mem(j)() * mem(revMap(S(i) / S(j)))()) % mod)
+      .foldLeft(1l)(_+_) % mod
+  }
+  lazy val mem = Array.tabulate(S.length)(doNumFactored)
+  (mem.map(_()).sum % mod).toInt
+}
+```
