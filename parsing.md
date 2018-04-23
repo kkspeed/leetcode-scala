@@ -229,7 +229,7 @@ The expressions are:
 2. '(' and ')' wrapped forms with fixed types:
   - <tt>(add x y ...)</tt> sums all the numbers 
   - <tt>(mult x y ...)</tt> calculates the product of the numbers
-  - <tt>(let x <expr> y <expr> ... <last\_expr>)</tt> the let expression binds variables
+  - <tt>(let x \<expr\> y \<expr\> ... \<last\_expr\>)</tt> the let expression binds variables
     in a couple of expressions and use this new environment to evaluate the last expression.
 
 We can start out by defining the AST:
