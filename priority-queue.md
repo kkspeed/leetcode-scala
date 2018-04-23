@@ -198,6 +198,61 @@ Note that in this implementation, we do not short circuit if we find nothing to 
 incur additional overhead under certain input. Though LeetCode OJ's data do not seem to have
 this type of test case.
 
+## Split Array into Consecutive Subsequences
+[LeetCode 659](https://leetcode.com/problems/split-array-into-consecutive-subsequences/description/)
+
+You are given an integer array sorted in ascending order (may contain duplicates), you need to split
+them into several subsequences, where each subsequences consist of at least 3 consecutive integers.
+Return whether you can make such a split.
+
+```
+Example 1:
+Input: [1,2,3,3,4,5]
+Output: True
+Explanation:
+You can split them into two consecutive subsequences : 
+1, 2, 3
+3, 4, 5
+
+Example 2:
+Input: [1,2,3,3,4,4,5,5]
+Output: True
+Explanation:
+You can split them into two consecutive subsequences : 
+1, 2, 3, 4, 5
+3, 4, 5
+
+Example 3:
+Input: [1,2,3,4,4,5]
+Output: False
+```
+
+We scan the array from left to right. For each number encountered, we append it to the
+shortest subgroup that expects this number (adding this number to the group would maintain
+the property that the group of numbers are consecutive). Thus, naturally we'll need a map
+from Int <tt>N</tt> to Heap <tt>H</tt> that maintains the groups of numbers that expects 
+number <tt>N</tt>. We can further simplify that by just putting length of such groups on
+the heap.
+
+```scala
+def isPossible(nums: Array[Int]): Boolean = {
+  object NumHeap extends PairHeap {
+    override type A = Int
+    override val ord: Ordering[A] = Ordering[Int]
+    // We augment the heap to prevent errors on deleteMin and findMin
+    override def findMin(h: H): A =
+      if (isEmpty(h)) 0 else super.findMin(h)
+    override def deleteMin(h: H): H =
+      if (isEmpty(h)) h else super.deleteMin(h)
+  }
+  nums.foldLeft[Map[Int, NumHeap.H]](Map().withDefaultValue(NumHeap.empty)) {
+    (map, n) => map.updated(n + 1,
+      NumHeap.insert(NumHeap.findMin(map(n)) + 1, map(n + 1)))
+      .updated(n, NumHeap.deleteMin(map(n)))
+  }.values.filterNot(NumHeap.isEmpty).forall(x => NumHeap.findMin(x) >= 3)
+}
+```
+
 # Remark
 You don't have to re-invent the wheel in the real world. Scala has
 <tt>scala.collection.mutable.PriorityQueue</tt>.
