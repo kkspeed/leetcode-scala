@@ -370,6 +370,112 @@ def findMinStep(board: String, hand: String): Int = {
 }
 ```
 
+## Alien Dictionary
+[LeetCode 269](https://leetcode.com/problems/alien-dictionary/description/)
+
+This idea is to construct relative order between chars and use topological sort
+to output the order.
+
+For each 2 words, say <tt>aaabcd, aaacd</tt>, we ignore their common prefixes and
+find the pair of letters that differ, say <tt>b in aaabcd</tt> and <tt>c in aaacd</tt>.
+Then we have <tt>b</tt> comes before <tt>c</tt>. 
+
+There are some preprocessing to this solution though. We'll add an additional node '1'
+since char '1' does not appear in any string and connect it to every char that occurs
+so that we have a single source node for topological sort. The topologic sort function
+looks like:
+
+```scala
+def topoSort(node: Char, graph: Map[Char, List[Char]], visited: Set[Char],
+             result: List[Char], preds: Set[Char]): T =
+  graph(node).foldLeft[T](Some((result, visited))) {
+    case (Some((r, vs)), n) if preds.contains(n) => None
+    case (Some((r, vs)), n) if !vs.contains(n) =>
+      topoSort(n, graph, vs + n, r, preds + n)
+    case (t, _) => t
+  }.map(r => (node::r._1, r._2))
+```
+
+It is based on the assumption that <tt>graph</tt> is a map with default value <tt>Nil</tt>.
+Note that the topoSort function returns <tt>Option[(List[Char], Set[Char])]</tt> since
+if we encountered a back edge that forms a circle, we just give up and return None.
+
+The code:
+
+```scala
+def alienOrder(words: Array[String]): String = {
+  type T = Option[(List[Char], Set[Char])]
+  def topoSort(node: Char, graph: Map[Char, List[Char]], visited: Set[Char],
+               result: List[Char], preds: Set[Char]): T =
+    graph(node).foldLeft[T](Some((result, visited))) {
+      case (Some((r, vs)), n) if preds.contains(n) => None
+      case (Some((r, vs)), n) if !vs.contains(n) =>
+        topoSort(n, graph, vs + n, r, preds + n)
+      case (t, _) => t
+    }.map(r => (node::r._1, r._2))
+  val graph = words.foldLeft(List[String]()) {
+    // This part is nasty since LeetCode has test case: ["z", "z"], for which we should
+    // return "z" though I feel such case should be invalid and return "".
+    case (x::xs, w) if w.equals(x) => x::xs
+    case (xs, w) => w::xs
+  }.reverse.sliding(2).foldLeft[Map[Char, List[Char]]](
+    Map('1' -> words.flatten.distinct.toList).withDefaultValue(Nil)) {
+    case (map, List(w1, w2)) =>
+      w1.zip(w2).dropWhile(x => x._1 == x._2).headOption match {
+        case None => map
+        case Some((x, y)) => map.updated(x, y::map(x))
+      }
+    case (map, List(w)) => map
+  }
+  topoSort('1', graph, Set(), Nil, Set())
+    .map(r => r._1.tail.mkString).getOrElse("")
+}
+```
+
+## Redundant Connection II
+[LeetCode 685](https://leetcode.com/problems/redundant-connection-ii/description/)
+In this problem, a rooted tree is a directed graph such that, there is exactly one node (the root)
+for which all other nodes are descendants of this node, plus every node has exactly one parent,
+except for the root node which has no parents.
+
+The given input is a directed graph that started as a rooted tree with N nodes (with distinct values
+1, 2, ..., N), with one additional directed edge added. The added edge has two different vertices
+chosen from 1 to N, and was not an edge that already existed.
+
+The resulting graph is given as a 2D-array of edges. Each element of edges is a pair [u, v] that
+represents a directed edge connecting nodes u and v, where u is a parent of child v.
+
+Return an edge that can be removed so that the resulting graph is a rooted tree of N nodes. If
+there are multiple answers, return the answer that occurs last in the given 2D-array. 
+
+We just need to enumerate through all the edges in reverse order, remove it from the graph and
+perform a DFS on the graph to see if it's still connected. The first edge that satisfy such 
+condition is the redundant edge.
+
+Note that we'll need to find the root of the edges. After removing an edge, the only node
+with in-degree 0 is the root. If such node does not exist, this edge is not the redundant edge.
+
+```scala
+def findRedundantDirectedConnection(edges: Array[Array[Int]]): Array[Int] = {
+  val count = edges.flatten.toSet.size
+  def stillConnected(i: (Int, Int), g: Map[Int, Set[Int]]): Boolean = {
+    def dfs(n: Int, visited: Set[Int]): Set[Int] =
+      g(n).foldLeft(visited) {
+        case (v, x) if !v.contains(x) => dfs(x, v + x)
+        case (v, _) => v
+      }
+    val root = g.keySet -- g.values.flatten
+    root.size == 1 && dfs(root.head, root).size == count
+  }
+  val graph = edges.foldLeft(Map[Int, Set[Int]]().withDefaultValue(Set.empty)) {
+    case (map, Array(s, e)) => map.updated(s, map(s) + e)
+  }
+  edges.reverse.find {
+    case Array(s, e) => stillConnected((s, e), graph.updated(s, graph(s) - e))
+  }.get
+}
+```
+
 # Breadth First Search
 Most of the time, for enumeration purposes, you can choose between breadth first search
 and depth first search freely. However, breadth first search has one nice property:
@@ -493,3 +599,4 @@ def numBusesToDestination(routes: Array[Array[Int]], S: Int, T: Int): Int = {
   else startRoutes.map(s => minDist(Queue((s, 1)), Set(s))).min
 }
 ```
+
