@@ -402,3 +402,64 @@ def minMeetingRooms(intervals: Array[Interval]): Int =
   intervals.flatMap(i => Seq((i.start, 1), (i.end, -1)))
      .sorted.scanLeft(0)(_ + _._2).max
 ```
+
+# Beautiful Arrangement
+[LeetCode 667](https://leetcode.com/problems/beautiful-arrangement-ii/description/)
+
+Given two integers n and k, you need to construct a list which contains n different positive
+integers ranging from 1 to n and obeys the following requirement:
+
+Suppose this list is [a1, a2, a3, ... , an], then the list [|a1 - a2|, |a2 - a3|, |a3 - a4|,
+... , |an-1 - an|] has exactly k distinct integers.
+
+If there are multiple answers, print any of them.
+
+```
+Example 1:
+
+Input: n = 3, k = 1
+Output: [1, 2, 3]
+Explanation: The [1, 2, 3] has three different positive integers ranging from 1 to 3, and the [1, 1] has exactly 1 distinct integer: 1.
+
+Example 2:
+
+Input: n = 3, k = 2
+Output: [1, 3, 2]
+Explanation: The [1, 3, 2] has three different positive integers ranging from 1 to 3, and the [2, 1] has exactly 2 distinct integers: 1 and 2.
+
+Note:
+    The n and k are in the range 1 <= k < n <= 104.
+```
+
+We observe that for array A = [1..k + 1], if we arrange it:
+
+```
+[1, k + 1, 2, k, ...]
+```
+
+Then we have <tt>k</tt> different values. So for any <tt>k</tt> we just need to arrange the first <tt>k + 1</tt> elements in such
+way.
+
+The code:
+
+```scala
+def constructArray(n: Int, k: Int): Array[Int] = {
+  def interleave(x: List[Int], y: List[Int], result: List[Int]): List[Int] =
+    (x, y) match {
+      case (xs, Nil) => result.reverse ++ xs
+      case (Nil, ys) => result.reverse ++ ys
+      case (t::xs, l::ys) => interleave(xs, ys, l::t::result)
+    }
+  val (left, right) = (1 to k + 1).splitAt(Math.ceil(k / 2.0).toInt)
+  (interleave(left.toList, right.toList.reverse, Nil) ++ (k + 2 to n)).toArray
+}
+```
+
+The <tt>interleave</tt> function could be coded in the following way. Can you try to decrypt what's happening?
+
+```scala
+def constructArray(n: Int, k: Int): Array[Int] = {
+  val (left, right) = (1 to k + 1).splitAt(Math.ceil(k / 2.0).toInt)
+  (left.grouped(1).zipAll(right.reverse.grouped(1), Nil, Nil).flatMap(x => x._1 ++ x._2) ++ (k + 2 to n)).toArray
+}
+```
