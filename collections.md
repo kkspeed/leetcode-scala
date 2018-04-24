@@ -379,3 +379,26 @@ def flipgame(fronts: Array[Int], backs: Array[Int]): Int = {
   (fronts ++ backs).sorted.find(x => !both.contains(x)).getOrElse(0)    
 }
 ```
+
+# Meeting Rooms II
+[LeetCode 253](https://leetcode.com/problems/meeting-rooms-ii/description/)
+
+We sort the intervals by starting point. Then the minimum number of meeting rooms is just the 
+maximum value of overlapping levels we ever encountered.
+
+```
+         |---------------|
+     |-----------|
+  |----------|
+   1 | 2 | 3 | 2 | 1
+```
+
+The maximum levels could be determined by a counter. Whenever we enter a <tt>start</tt> of
+an interval, we increment the counter an we decrement it when we exit. The idea is similar
+to matching parentheses:
+
+```scala
+def minMeetingRooms(intervals: Array[Interval]): Int =
+  intervals.flatMap(i => Seq((i.start, 1), (i.end, -1)))
+     .sorted.scanLeft(0)(_ + _._2).max
+```
