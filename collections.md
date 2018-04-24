@@ -463,3 +463,11 @@ def constructArray(n: Int, k: Int): Array[Int] = {
   (left.grouped(1).zipAll(right.reverse.grouped(1), Nil, Nil).flatMap(x => x._1 ++ x._2) ++ (k + 2 to n)).toArray
 }
 ```
+
+Actually, the last line could be re-written as:
+
+```scala
+val (left, right) = (1 to k + 1).splitAt(Math.ceil(k / 2.0).toInt)
+((left, right.reverse).zipped.flatMap(Seq(_, _)) ++ right.reverse.drop(left.length) ++
+  left.drop(right.length) ++ (k + 2 to n)).toArray
+```
