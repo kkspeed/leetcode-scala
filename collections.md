@@ -471,3 +471,37 @@ val (left, right) = (1 to k + 1).splitAt(Math.ceil(k / 2.0).toInt)
 ((left, right.reverse).zipped.flatMap(Seq(_, _)) ++ right.reverse.drop(left.length) ++
   left.drop(right.length) ++ (k + 2 to n)).toArray
 ```
+
+# Remove Duplicate Letters
+[LeetCode 316](https://leetcode.com/problems/remove-duplicate-letters/description/)
+
+Given a string which contains only lowercase letters, remove duplicate letters so that every letter appear once and 
+only once. You must make sure your result is the smallest in lexicographical order among all possible results.
+
+```
+Example:
+
+Given "bcabc"
+Return "abc"
+
+Given "cbacdcbc"
+Return "acdb" 
+```
+
+The result string's length is <tt>Set(original\_string).size</tt>. Thus, we can use a set SET to keep 
+letters to be constructed. Then we find the minimum letter <tt>ch</tt> such that: if we partition the string on first
+occurences of this letter, the rest of the string has every letter of <tt>SET // ch</tt>.
+
+We can use a TreeSet to keep track of the letters to be removed, so that the first letter that satisfy the
+above condition is guaranteed to be the smallest one:
+
+```scala
+def removeDuplicateLetters(s: String): String = {
+  import scala.collection.immutable.TreeSet
+  s.distinct.indices.foldLeft((TreeSet[Char](s: _*), s, List[Char]())) {
+    case ((set, rest, result), _) =>
+      val c = set.find(c => set subsetOf rest.dropWhile(_ != c).toSet).get
+      (set - c, rest.dropWhile(_ != c).tail, c::result)
+  }._3.reverse.mkString
+}
+```
