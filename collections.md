@@ -505,3 +505,29 @@ def removeDuplicateLetters(s: String): String = {
   }._3.reverse.mkString
 }
 ```
+
+# Linked List Random Node
+[LeetCode 382](https://leetcode.com/problems/linked-list-random-node/description/):
+
+Given a singly linked list, return a random node's value from the linked list. Each node must have
+the same probability of being chosen.
+
+Follow up:
+
+What if the linked list is extremely large and its length is unknown to you? Could you solve this
+efficiently without using extra space? 
+
+```scala
+// It's not necessary to convert the list to a stream of int but doing so
+// gives you the flexibility of using collection APIs.
+def getStream(node: ListNode): Stream[Int] =
+  if (node == null) Stream.empty
+  else node.x +: getStream(node.next)
+
+// Just use Reservoir Sampling to solve it.
+def getRandom(): Int =
+  getStream(_head).foldLeft((0, 0)) {
+    case ((count, v), x) =>
+      (count + 1, if (Math.random() < 1.0 / (count + 1)) x else v)
+  }._2
+```
