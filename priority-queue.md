@@ -316,6 +316,47 @@ def scheduleCourse(courses: Array[Array[Int]]): Int = {
 }
 ```
 
+## Most Profit Assigning Work
+[LeetCode 826](https://leetcode.com/problems/most-profit-assigning-work/description/)
+
+We have jobs: difficulty[i] is the difficulty of the ith job, and profit[i] is the profit
+of the ith job. 
+
+Now we have some workers. worker[i] is the ability of the ith worker, which means that this worker can only complete
+a job with difficulty at most worker[i]. 
+
+Every worker can be assigned at most one job, but one job can be completed multiple times.
+
+For example, if 3 people attempt the same job that pays $1, then the total profit will be $3.  If a worker cannot
+complete any job, his profit is $0.
+
+What is the most profit we can make?
+
+The greedy strategy is to give every worker the job that's within their capability and makes maximum profit. We need
+to sort the workers ability and use priority queue to track maximum profit of the jobs that's within their capability.
+
+```scala
+def maxProfitAssignment(difficulty: Array[Int], profit: Array[Int], worker: Array[Int]): Int =
+  worker.sorted.foldLeft((difficulty.zip(profit).sorted, scala.collection.mutable.PriorityQueue[Int](), 0)) {
+    case ((works, candidates, sum), w) =>
+      val (canDo, rest) = works.span(_._1 <= w)
+      candidates.enqueue(canDo.map(_._2): _*)
+      (rest, candidates, sum + (if (candidates.nonEmpty) candidates.head else 0))
+  }._3
+```
+
+But taking a look again, we only need the maximum profit. So we could get rid of the priority queue as well.
+
+```scala
+def maxProfitAssignment(difficulty: Array[Int], profit: Array[Int], worker: Array[Int]): Int =
+  worker.sorted.foldLeft((difficulty.zip(profit).sorted, 0, 0)) {
+    case ((works, max, sum), w) =>
+      val (canDo, rest) = works.span(_._1 <= w)
+      val m = max max (0 +: canDo.map(_._2)).max
+      (rest, m, sum + m)
+  }._3
+```
+
 # Remark
 You don't have to re-invent the wheel in the real world. Scala has
 <tt>scala.collection.mutable.PriorityQueue</tt>.
