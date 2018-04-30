@@ -263,3 +263,31 @@ def numFactoredBinaryTrees(A: Array[Int]): Int = {
   (mem.map(_()).sum % mod).toInt
 }
 ```
+
+## Maximum Length of Pair Chain 
+[LeetCode 646](https://leetcode.com/problems/maximum-length-of-pair-chain/description/)
+
+You are given n pairs of numbers. In every pair, the first number is always smaller than the second
+number.
+
+Now, we define a pair (c, d) can follow another pair (a, b) if and only if b < c. Chain of pairs can be
+formed in this fashion.
+
+Given a set of pairs, find the length longest chain which can be formed. You needn't use up all the given
+pairs. You can select pairs in any order.  
+
+The idea is to use dynamic programming. Chain[[a, b]] = max Chain[[c, d]] where d < a + 1.
+
+```scala
+def findLongestChain(pairs: Array[Array[Int]]): Int = {
+  val sorted = pairs.sortBy(_(0))
+  def doLongest(i: Int): Lazy[Int] = Lazy {
+    ((0 until i).filter(sorted(_)(1) < sorted(i)(0)) match {
+      case Seq() => 0
+      case xs => xs.map(mem(_)()).max
+    }) + 1
+  }
+  lazy val mem = Array.tabulate(sorted.length)(doLongest)
+  mem.map(_()).max
+}
+```
