@@ -291,3 +291,16 @@ def findLongestChain(pairs: Array[Array[Int]]): Int = {
   mem.map(_()).max
 }
 ```
+
+This problem could be solved with greedy:
+
+- Sort by ending
+- For each two intervals, if they intersect, drop the latter one.
+
+```scala
+def findLongestChain(pairs: Array[Array[Int]]): Int =
+  pairs.sortBy(_(1)).foldLeft[List[Array[Int]]](Nil) {
+    case (x::xs, i) if (i(0) <= x(1)) => x::xs
+    case (xs, i) => i::xs
+  }.length
+```
