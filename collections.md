@@ -531,3 +531,18 @@ def getRandom(): Int =
       (count + 1, if (Math.random() < 1.0 / (count + 1)) x else v)
   }._2
 ```
+
+# Maximum Size Subarray Sum Equals K
+[LeetCode 325](https://leetcode.com/problems/maximum-size-subarray-sum-equals-k/description/)
+
+We can build an array of prefix sum. Then store it with index in a hashmap. Scan it again,
+for each entry we calculate the distance by <tt>map(k + prefix(i)) - i</tt> if <tt>k + prefix(i)</tt>
+exists.
+
+```scala
+def maxSubArrayLen(nums: Array[Int], k: Int): Int = {
+  val prefix = nums.scanLeft(0)(_+_)
+  val dict = prefix.zipWithIndex.toMap
+  prefix.indices.map(i => dict.get(k + prefix(i)).map(_ - i).getOrElse(0)).max
+}
+```
